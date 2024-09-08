@@ -29,7 +29,7 @@ func New(db dbConn) Repository {
 func (r *repository) GetAllUsers() ([]model.User, error) {
 	rows, err := r.db.Query(context.Background(), "select id, name, upserted_at from users")
 	if err != nil {
-		log.Printf("error fetching users: %+v", err)
+		log.Printf("error querying users: %+v", err)
 		return nil, err
 	}
 

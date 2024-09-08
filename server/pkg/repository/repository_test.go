@@ -1,31 +1,14 @@
 package repository
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"testing"
 	"time"
 	"x/pkg/model"
+	"x/pkg/util"
 
 	"github.com/pashagolub/pgxmock/v4"
 )
-
-func assertJSON(actual interface{}, expected interface{}, t *testing.T) {
-	actualData, err := json.Marshal(actual)
-	if err != nil {
-		t.Errorf("an error '%s' was not expected when marshaling actual json data", err)
-	}
-
-	expectedData, err := json.Marshal(expected)
-	if err != nil {
-		t.Errorf("an error '%s' was not expected when marshaling expected json data", err)
-	}
-
-	if !bytes.Equal(expectedData, actualData) {
-		t.Errorf("the expected json: %s is different from actual %s", expected, actual)
-	}
-}
 
 func TestGetAllUsers_ReturnsUsers(t *testing.T) {
 	// arrange
@@ -63,7 +46,7 @@ func TestGetAllUsers_ReturnsUsers(t *testing.T) {
 	}
 
 	// assert
-	assertJSON(actual, expected, t)
+	util.AssertJSON(actual, expected, t)
 	if err := mockDb.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
@@ -95,7 +78,7 @@ func TestGetAllUsersFails_ReturnsError(t *testing.T) {
 	}
 }
 
-func TestGetAllUsersScanError_ReturnsError(t *testing.T) {
+func TestGetAllUsersParseError_ReturnsError(t *testing.T) {
 	// arrange
 	mockDb, err := pgxmock.NewPool()
 	if err != nil {
