@@ -20,6 +20,12 @@ func (m *mockRepo) GetAllUsers() ([]model.User, error) {
 	return args.Get(0).([]model.User), args.Error(1)
 }
 
+func (m *mockRepo) CreateUser(name string) error {
+	args := m.Called(name)
+
+	return args.Error(0)
+}
+
 func TestGetAllUsers_ReturnsUsers(t *testing.T) {
 	mockRepo := &mockRepo{}
 	service := New(mockRepo)
@@ -56,6 +62,36 @@ func TestGetAllUsersFails_ReturnsError(t *testing.T) {
 	mockRepo.On("GetAllUsers").Return(([]model.User)(nil), expected)
 
 	_, actual := service.GetAllUsers()
+	if actual != expected {
+		t.Errorf("expected %+v, actual: %+v", expected, actual)
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCreateUser_ReturnsNoError(t *testing.T) {
+	mockRepo := &mockRepo{}
+	service := New(mockRepo)
+
+	mockRepo.On("CreateUser", mock.AnythingOfType("string")).Return(nil)
+
+	actual := service.CreateUser("Varun Gupta")
+	if actual != nil {
+		t.Errorf("expected: %+v, actual: %+v", nil, actual)
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCreateUser_ReturnsError(t *testing.T) {
+	mockRepo := &mockRepo{}
+	service := New(mockRepo)
+
+	expected := errors.New("test error")
+
+	mockRepo.On("CreateUser", mock.AnythingOfType("string")).Return(expected)
+
+	actual := service.CreateUser("Varun Gupta")
 	if actual != expected {
 		t.Errorf("expected %+v, actual: %+v", expected, actual)
 	}

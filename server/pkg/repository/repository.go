@@ -6,14 +6,17 @@ import (
 	"x/pkg/model"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type dbConn interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
 }
 
 type Repository interface {
 	GetAllUsers() ([]model.User, error)
+	CreateUser(name string) error
 }
 
 type repository struct {
@@ -42,4 +45,14 @@ func (r *repository) GetAllUsers() ([]model.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *repository) CreateUser(name string) error {
+	_, err := r.db.Exec(context.Background(), "insert into users (name) values ($1)", name)
+	if err != nil {
+		log.Printf("error inserting user: %+v", err)
+		return err
+	}
+
+	return nil
 }

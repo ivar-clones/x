@@ -108,3 +108,55 @@ func TestGetAllUsersParseError_ReturnsError(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+func TestCreateUser_ReturnsNoError(t *testing.T) {
+	// arrange
+	mockDb, err := pgxmock.NewPool()
+	if err != nil {
+		t.Errorf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	defer mockDb.Close()
+
+	repo := New(mockDb)
+
+	mockDb.ExpectExec("insert into users").WithArgs("Varun Gupta").WillReturnResult(pgxmock.NewResult("", 1))
+
+	// act
+	actual := repo.CreateUser("Varun Gupta")
+	if actual != nil {
+		t.Errorf("expected: %+v, actual: %+v, error: %+v", nil, actual, err)
+	}
+
+	// assert
+	if err := mockDb.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestCreateUser_ReturnsError(t *testing.T) {
+	// arrange
+	mockDb, err := pgxmock.NewPool()
+	if err != nil {
+		t.Errorf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	defer mockDb.Close()
+
+	repo := New(mockDb)
+
+	expected := errors.New("test error")
+
+	mockDb.ExpectExec("insert into users").WithArgs("Varun Gupta").WillReturnError(expected)
+
+	// act
+	actual := repo.CreateUser("Varun Gupta")
+	if actual != expected {
+		t.Errorf("expected: %+v, actual: %+v, error: %+v", expected, actual, err)
+	}
+
+	// assert
+	if err := mockDb.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}

@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	GetAllUsers() ([]model.User, error)
+	CreateUser(name string) error
 }
 
 type service struct {
@@ -28,4 +29,13 @@ func (s *service) GetAllUsers() ([]model.User, error) {
 	}
 
 	return users, nil
+}
+
+func (s *service) CreateUser(name string) error {
+	if err := s.db.CreateUser(name); err != nil {
+		log.Printf("error creating user: %+v", err)
+		return err
+	}
+
+	return nil
 }
