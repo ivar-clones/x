@@ -5,26 +5,29 @@ import (
 	"log"
 	"x/pkg/model"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 )
+
+type dbConn interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+}
 
 type Repository interface {
 	GetAllUsers() ([]model.User, error)
 }
 
 type repository struct {
-	db *pgxpool.Pool
+	db dbConn
 }
 
-func New(db *pgxpool.Pool) Repository {
+func New(db dbConn) Repository {
 	return &repository{
 		db: db,
 	}
 }
 
 func (r *repository) GetAllUsers() ([]model.User, error) {
-	var users []model.User
-	rows, err := r.db.Query(context.Background(), "select * from users")
+	rows, err := r.db.Query(context.Background(), "select id, name, upserted_at from users")
 	if err != nil {
 		log.Printf("error fetching users: %+v", err)
 		return nil, err
@@ -32,19 +35,10 @@ func (r *repository) GetAllUsers() ([]model.User, error) {
 
 	defer rows.Close()
 
-	for rows.Next() {
-		var user model.User
-		err = rows.Scan(&user)
-		if err != nil {
-			return nil, err
-		}
-
-		users = append(users, user)
-	}
-
-	if rows.Err() != nil {
-		log.Printf("error scanning rows: %+v", rows.Err())
-		return nil, rows.Err()
+	users, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.User])
+	if err != nil {
+		log.Printf("error collecting rows: %+v", err)
+		return nil, err
 	}
 
 	return users, nil
