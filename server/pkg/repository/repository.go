@@ -16,7 +16,7 @@ type dbConn interface {
 
 type Repository interface {
 	GetAllUsers() ([]model.User, error)
-	CreateUser(name string) error
+	CreateUser(name, bio string, dob interface{}) error
 }
 
 type repository struct {
@@ -30,7 +30,7 @@ func New(db dbConn) Repository {
 }
 
 func (r *repository) GetAllUsers() ([]model.User, error) {
-	rows, err := r.db.Query(context.Background(), "select id, name, upserted_at from users")
+	rows, err := r.db.Query(context.Background(), "select id, name, upserted_at, bio, dob from users")
 	if err != nil {
 		log.Printf("error querying users: %+v", err)
 		return nil, err
@@ -47,8 +47,8 @@ func (r *repository) GetAllUsers() ([]model.User, error) {
 	return users, nil
 }
 
-func (r *repository) CreateUser(name string) error {
-	_, err := r.db.Exec(context.Background(), "insert into users (name) values ($1)", name)
+func (r *repository) CreateUser(name, bio string, dob interface{}) error {
+	_, err := r.db.Exec(context.Background(), "insert into users (name, bio, dob) values ($1, $2, $3)", name, bio, dob)
 	if err != nil {
 		log.Printf("error inserting user: %+v", err)
 		return err

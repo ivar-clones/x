@@ -2,10 +2,15 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"x/pkg/model"
 )
+
+var badDobError = errors.New("Format for date of birth should be DD-MM-YYYY")
 
 type UserController interface {
 	GetAllUsers(w http.ResponseWriter, r *http.Request)
@@ -41,11 +46,45 @@ func (u *controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := u.userService.CreateUser(createUserRequest.Name); err != nil {
+	if err := validatedDob(createUserRequest.DOB); errors.Is(err, badDobError) {
+		log.Printf("bad format for dob: %+v", createUserRequest.DOB)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := u.userService.CreateUser(createUserRequest.Name, createUserRequest.Bio, createUserRequest.DOB); err != nil {
 		log.Printf("error creating user: %+v", err)
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func validatedDob(dob string) error {
+	if dob == "" {
+		return nil
+	}
+	
+	parsedDob := strings.Split(dob, "-")
+	if len(parsedDob) != 3 || (parsedDob[0] == "" || parsedDob[1] == "" || parsedDob[2] == "") {
+		return badDobError
+	}
+
+	_, err := strconv.Atoi(parsedDob[0])
+	if err != nil {
+		return badDobError
+	}
+
+	_, err = strconv.Atoi(parsedDob[1])
+	if err != nil {
+		return badDobError
+	}
+
+	_, err = strconv.Atoi(parsedDob[2])
+	if err != nil {
+		return badDobError
+	}
+	
+	return nil
 }

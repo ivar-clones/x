@@ -20,8 +20,8 @@ func (m *mockRepo) GetAllUsers() ([]model.User, error) {
 	return args.Get(0).([]model.User), args.Error(1)
 }
 
-func (m *mockRepo) CreateUser(name string) error {
-	args := m.Called(name)
+func (m *mockRepo) CreateUser(name, bio string, dob interface{}) error {
+	args := m.Called(name, bio, dob)
 
 	return args.Error(0)
 }
@@ -37,11 +37,13 @@ func TestGetAllUsers_ReturnsUsers(t *testing.T) {
 			ID: 1,
 			Name: "user 1",
 			UpsertedAt: dummyTime,
+			Bio: "bio1",
 		},
 		{
 			ID: 2,
 			Name: "user 2",
 			UpsertedAt: dummyTime,
+			Bio: "bio2",
 		},
 	}
 
@@ -73,9 +75,23 @@ func TestCreateUser_ReturnsNoError(t *testing.T) {
 	mockRepo := &mockRepo{}
 	service := New(mockRepo)
 
-	mockRepo.On("CreateUser", mock.AnythingOfType("string")).Return(nil)
+	mockRepo.On("CreateUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return(nil)
 
-	actual := service.CreateUser("Varun Gupta")
+	actual := service.CreateUser("Varun Gupta", "bio1", "29-07-1997")
+	if actual != nil {
+		t.Errorf("expected: %+v, actual: %+v", nil, actual)
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCreateUser_WithEmptyDOB_ReturnsNoError(t *testing.T) {
+	mockRepo := &mockRepo{}
+	service := New(mockRepo)
+
+	mockRepo.On("CreateUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(nil)
+
+	actual := service.CreateUser("Varun Gupta", "bio1", "")
 	if actual != nil {
 		t.Errorf("expected: %+v, actual: %+v", nil, actual)
 	}
@@ -89,9 +105,9 @@ func TestCreateUser_ReturnsError(t *testing.T) {
 
 	expected := errors.New("test error")
 
-	mockRepo.On("CreateUser", mock.AnythingOfType("string")).Return(expected)
+	mockRepo.On("CreateUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return(expected)
 
-	actual := service.CreateUser("Varun Gupta")
+	actual := service.CreateUser("Varun Gupta", "bio1", "29-07-1997")
 	if actual != expected {
 		t.Errorf("expected %+v, actual: %+v", expected, actual)
 	}

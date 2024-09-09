@@ -27,17 +27,21 @@ func TestGetAllUsers_ReturnsUsers(t *testing.T) {
 			ID: 1,
 			Name: "user 1",
 			UpsertedAt: dummyTime,
+			Bio: "bio1",
+			DOB: dummyTime,
 		},
 		{
 			ID: 2,
 			Name: "user 2",
 			UpsertedAt: dummyTime,
+			Bio: "bio2",
+			DOB: dummyTime,
 		},
 	}
 
-	mockRows := mockDb.NewRows([]string{"id", "name", "upserted_at"}).AddRow(1, "user 1", dummyTime).AddRow(2, "user 2", dummyTime)
+	mockRows := mockDb.NewRows([]string{"id", "name", "upserted_at", "bio", "dob"}).AddRow(1, "user 1", dummyTime, "bio1", dummyTime).AddRow(2, "user 2", dummyTime, "bio2", dummyTime)
 
-	mockDb.ExpectQuery("select id, name, upserted_at from users").WillReturnRows(mockRows)
+	mockDb.ExpectQuery("select id, name, upserted_at, bio, dob from users").WillReturnRows(mockRows)
 
 	// act
 	actual, err := repo.GetAllUsers()
@@ -63,7 +67,7 @@ func TestGetAllUsersFails_ReturnsError(t *testing.T) {
 
 	repo := New(mockDb)
 
-	mockDb.ExpectQuery("select id, name, upserted_at from users").WillReturnError(errors.New("test error"))
+	mockDb.ExpectQuery("select id, name, upserted_at, bio, dob from users").WillReturnError(errors.New("test error"))
 
 	// act
 	_, err = repo.GetAllUsers()
@@ -92,9 +96,9 @@ func TestGetAllUsersParseError_ReturnsError(t *testing.T) {
 
 	dummyTime := time.Now()
 
-	mockRows := mockDb.NewRows([]string{"id", "name", "upserted_at"}).AddRow(1, 1, dummyTime).AddRow(2, 2, dummyTime)
+	mockRows := mockDb.NewRows([]string{"id", "name", "upserted_at", "bio", "dob"}).AddRow(1, 1, dummyTime, "bio", dummyTime).AddRow(2, 2, dummyTime, "bio", dummyTime)
 
-	mockDb.ExpectQuery("select id, name, upserted_at from users").WillReturnRows(mockRows)
+	mockDb.ExpectQuery("select id, name, upserted_at, bio, dob from users").WillReturnRows(mockRows)
 
 	// act
 	_, err = repo.GetAllUsers()
@@ -120,10 +124,12 @@ func TestCreateUser_ReturnsNoError(t *testing.T) {
 
 	repo := New(mockDb)
 
-	mockDb.ExpectExec("insert into users").WithArgs("Varun Gupta").WillReturnResult(pgxmock.NewResult("", 1))
+	dummyTime := time.Now()
+
+	mockDb.ExpectExec("insert into users").WithArgs("Varun Gupta", "bio1", dummyTime).WillReturnResult(pgxmock.NewResult("", 1))
 
 	// act
-	actual := repo.CreateUser("Varun Gupta")
+	actual := repo.CreateUser("Varun Gupta", "bio1", dummyTime)
 	if actual != nil {
 		t.Errorf("expected: %+v, actual: %+v, error: %+v", nil, actual, err)
 	}
@@ -145,12 +151,14 @@ func TestCreateUser_ReturnsError(t *testing.T) {
 
 	repo := New(mockDb)
 
+	dummyTime := time.Now()
+
 	expected := errors.New("test error")
 
-	mockDb.ExpectExec("insert into users").WithArgs("Varun Gupta").WillReturnError(expected)
+	mockDb.ExpectExec("insert into users").WithArgs("Varun Gupta", "bio1", dummyTime).WillReturnError(expected)
 
 	// act
-	actual := repo.CreateUser("Varun Gupta")
+	actual := repo.CreateUser("Varun Gupta", "bio1", dummyTime)
 	if actual != expected {
 		t.Errorf("expected: %+v, actual: %+v, error: %+v", expected, actual, err)
 	}
