@@ -31,6 +31,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/users", controllers.GetAllUsers)
 	mux.HandleFunc("POST /api/v1/users", controllers.CreateUser)
+	mux.HandleFunc("PUT /api/v1/users", controllers.UpdateUser)
 	
 	log.Println("Server started on port 3000")
 	

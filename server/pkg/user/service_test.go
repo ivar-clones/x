@@ -26,6 +26,18 @@ func (m *mockRepo) CreateUser(name, bio string, dob interface{}) error {
 	return args.Error(0)
 }
 
+func (m *mockRepo) UpdateUser(id int, name, bio string, dob interface{}) error {
+	args := m.Called(id, name, bio, dob)
+
+	return args.Error(0)
+}
+
+func (m *mockRepo) GetUser(id int) (*model.User, error) {
+	args := m.Called(id)
+
+	return args.Get(0).(*model.User), args.Error(1)
+}
+
 func TestGetAllUsers_ReturnsUsers(t *testing.T) {
 	mockRepo := &mockRepo{}
 	service := New(mockRepo)
@@ -108,6 +120,86 @@ func TestCreateUser_ReturnsError(t *testing.T) {
 	mockRepo.On("CreateUser", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return(expected)
 
 	actual := service.CreateUser("Varun Gupta", "bio1", "29-07-1997")
+	if actual != expected {
+		t.Errorf("expected %+v, actual: %+v", expected, actual)
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUpdateUser_ReturnsNoError(t *testing.T) {
+	mockRepo := &mockRepo{}
+	service := New(mockRepo)
+
+	dummyTime := time.Now()
+	mockRepo.On("GetUser", mock.AnythingOfType("int")).Return(&model.User{
+		ID: 1,
+		Name: "Varun Gupta",
+		Bio: "bio",
+		DOB: &dummyTime,
+	}, nil)
+	mockRepo.On("UpdateUser", mock.AnythingOfType("int"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(nil)
+
+	actual := service.UpdateUser(1, "Varun Gupta", "bio1", "29-07-1997")
+	if actual != nil {
+		t.Errorf("expected: %+v, actual: %+v", nil, actual)
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUpdateUser_FailsToGetUser_ReturnsError(t *testing.T) {
+	mockRepo := &mockRepo{}
+	service := New(mockRepo)
+
+	expected := errors.New("test error")
+	mockRepo.On("GetUser", mock.AnythingOfType("int")).Return((*model.User)(nil), expected)
+
+	actual := service.UpdateUser(1, "Varun Gupta", "bio1", "29-07-1997")
+	if actual != expected {
+		t.Errorf("expected: %+v, actual: %+v", nil, actual)
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUpdateUser_WithEmptyData_ReturnsNoError(t *testing.T) {
+	mockRepo := &mockRepo{}
+	service := New(mockRepo)
+
+	dummyTime := time.Now()
+	mockRepo.On("GetUser", mock.AnythingOfType("int")).Return(&model.User{
+		ID: 1,
+		Name: "Varun Gupta",
+		Bio: "bio",
+		DOB: &dummyTime,
+	}, nil)
+	mockRepo.On("UpdateUser", mock.AnythingOfType("int"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(nil)
+
+	actual := service.UpdateUser(1, "", nil, "")
+	if actual != nil {
+		t.Errorf("expected: %+v, actual: %+v", nil, actual)
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUpdateUser_ReturnsError(t *testing.T) {
+	mockRepo := &mockRepo{}
+	service := New(mockRepo)
+
+	expected := errors.New("test error")
+
+	dummyTime := time.Now()
+	mockRepo.On("GetUser", mock.AnythingOfType("int")).Return(&model.User{
+		ID: 1,
+		Name: "Varun Gupta",
+		Bio: "bio",
+		DOB: &dummyTime,
+	}, nil)
+	mockRepo.On("UpdateUser", mock.AnythingOfType("int"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(expected)
+
+	actual := service.UpdateUser(1, "Varun Gupta", "bio1", "29-07-1997")
 	if actual != expected {
 		t.Errorf("expected %+v, actual: %+v", expected, actual)
 	}
