@@ -25,10 +25,3 @@ jobs:
 
       - name: Test
         run: cd server && go test -v ./...
-
-      - name: Coverage
-        uses: ncruces/go-coverage-report@v0
-        with:
-          report: true
-          chart: true
-          amend: true
