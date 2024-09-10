@@ -26,10 +26,8 @@ jobs:
       - name: Test
         run: cd server && go test -v ./...
 
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: ncruces/go-coverage-report@v0
+      - name: Coverage
+        uses: ncruces/go-coverage-report@v0
         with:
           report: true
           chart: true
