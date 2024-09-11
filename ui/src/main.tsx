@@ -7,6 +7,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { ErrorPage } from "./pages/PageNotFound.tsx";
 import { Auth0Provider } from "@auth0/auth0-react";
 import { RedirectLogin } from "./pages/RedirectLogin.tsx";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const DOMAIN = import.meta.env.VITE_DOMAIN;
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
@@ -35,7 +36,9 @@ createRoot(document.getElementById("root")!).render(
         clientId={CLIENT_ID}
         authorizationParams={{ redirect_uri: window.location.origin }}
       >
-        <RouterProvider router={router} />
+        <TooltipProvider>
+          <RouterProvider router={router} />
+        </TooltipProvider>
       </Auth0Provider>
     </ThemeProvider>
   </StrictMode>
