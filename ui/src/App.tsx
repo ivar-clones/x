@@ -7,9 +7,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useNavigate } from "react-router-dom";
 
 function App() {
   const { isAuthenticated } = useAuth0();
+  const navigate = useNavigate();
+
+  if (!isAuthenticated) {
+    navigate("/login");
+    return;
+  }
 
   return (
     <div className="h-screen min-w-[450px]">
