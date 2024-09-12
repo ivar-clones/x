@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect } from "react";
@@ -15,6 +15,7 @@ import { useEffect } from "react";
 function App() {
   const { isAuthenticated, user } = useAuth0();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const {
     data: currentUser,
@@ -67,13 +68,17 @@ function App() {
   return (
     <div className="h-screen min-w-[450px]">
       <div className="h-full flex flex-row">
-        <div className="flex flex-col-reverse w-20 md:w-56 items-center py-5 px-2 gap-4">
+        <div className="flex flex-col-reverse w-20 md:w-96 items-center py-5 px-2 gap-4">
           {isAuthenticated ? (
             <>
               <LoginProfile />
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" className="rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="rounded-full"
+                    onClick={() => navigate("/profile")}
+                  >
                     <Icons.user />
                     <span className="text-lg hidden md:block ml-2">
                       Profile
@@ -88,28 +93,41 @@ function App() {
           ) : undefined}
         </div>
         <div className="flex flex-col overflow-y-auto w-full pr-0 md:pr-10 items-start border-l-2">
-          <div className="flex flex-col items-stretch w-full lg:w-[80%] xl:w-[60%] gap-4 border-r-2 p-2">
-            <div className="min-h-44 w-full bg-green-100 text-background rounded-md p-2">
-              testing 1
+          <div className="flex flex-col items-stretch w-full lg:w-[80%] xl:w-[60%] border-r-2 px-2 pb-2">
+            <div className="sticky top-0 h-12 w-full flex flex-row gap-5 items-center backdrop-blur mb-2">
+              {location.pathname.includes("profile") ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate(-1)}
+                  >
+                    <Icons.back />
+                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <h2>{user?.name}</h2>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-row w-full justify-between">
+                  <Button
+                    variant="ghost"
+                    className="w-full hover:underline decoration-primary decoration-4 underline-offset-[12px]"
+                    size="lg"
+                  >
+                    <span className="text-lg">For you</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full hover:underline decoration-primary decoration-4 underline-offset-[12px]"
+                    size="lg"
+                  >
+                    <span className="text-lg">Following</span>
+                  </Button>
+                </div>
+              )}
             </div>
-            <div className="min-h-44 w-full bg-green-100 text-background rounded-md p-2">
-              testing 2
-            </div>
-            <div className="min-h-44 w-full bg-green-100 text-background rounded-md p-2">
-              testing 3
-            </div>
-            <div className="min-h-44 w-full bg-green-100 text-background rounded-md p-2">
-              testing 4
-            </div>
-            <div className="min-h-44 w-full bg-green-100 text-background rounded-md p-2">
-              testing 5
-            </div>
-            <div className="min-h-44 w-full bg-green-100 text-background rounded-md p-2">
-              testing 6
-            </div>
-            <div className="min-h-44 w-full bg-green-100 text-background rounded-md p-2">
-              testing 7
-            </div>
+            <Outlet />
           </div>
         </div>
       </div>

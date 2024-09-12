@@ -9,6 +9,8 @@ import { Auth0Provider } from "@auth0/auth0-react";
 import { RedirectLogin } from "./pages/RedirectLogin.tsx";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ProfilePage } from "./pages/ProfilePage.tsx";
+import { HomePage } from "./pages/HomePage.tsx";
 
 const DOMAIN = import.meta.env.VITE_DOMAIN;
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
@@ -30,6 +32,16 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     errorElement: <ErrorPage />,
+    children: [
+      {
+        path: "",
+        element: <HomePage />,
+      },
+      {
+        path: "profile",
+        element: <ProfilePage />,
+      },
+    ],
   },
   {
     path: "/login",

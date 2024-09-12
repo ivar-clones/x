@@ -1,4 +1,4 @@
-export const ProfilePage = () => {
+export const HomePage = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="min-h-44 w-full bg-green-500 text-background rounded-md p-2">
