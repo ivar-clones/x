@@ -14,6 +14,7 @@ var badDobError = errors.New("Format for date of birth should be DD-MM-YYYY")
 
 type UserController interface {
 	GetAllUsers(w http.ResponseWriter, r *http.Request)
+	GetUser(w http.ResponseWriter, r *http.Request)
 	CreateUser(w http.ResponseWriter, r *http.Request)
 	UpdateUser(w http.ResponseWriter, r *http.Request)
 }
@@ -27,6 +28,33 @@ func (u *controller) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBytes, err := json.Marshal(users)
+	if err != nil {
+		log.Printf("error marshalling users: %+v", err)
+		http.Error(w, "error fetching users", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonBytes)
+}
+
+func (u *controller) GetUser(w http.ResponseWriter, r *http.Request) {
+	email := r.PathValue("email")
+	
+	user, err := u.userService.GetUserByEmail(email)
+	if err != nil {
+		log.Printf("error fetching users: %+v", err)
+		http.Error(w, "error fetching users", http.StatusInternalServerError)
+		return
+	}
+
+	if user == nil {
+		log.Printf("no user found");
+		http.Error(w, "no user found", http.StatusNoContent)
+		return
+	}
+
+	jsonBytes, err := json.Marshal(user)
 	if err != nil {
 		log.Printf("error marshalling users: %+v", err)
 		http.Error(w, "error fetching users", http.StatusInternalServerError)

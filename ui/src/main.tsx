@@ -8,6 +8,7 @@ import { ErrorPage } from "./pages/PageNotFound.tsx";
 import { Auth0Provider } from "@auth0/auth0-react";
 import { RedirectLogin } from "./pages/RedirectLogin.tsx";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const DOMAIN = import.meta.env.VITE_DOMAIN;
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
@@ -15,6 +16,14 @@ const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
 if (!DOMAIN || !CLIENT_ID) {
   throw new Error("Missing configuration");
 }
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const router = createBrowserRouter([
   {
@@ -36,9 +45,11 @@ createRoot(document.getElementById("root")!).render(
         clientId={CLIENT_ID}
         authorizationParams={{ redirect_uri: window.location.origin }}
       >
-        <TooltipProvider>
-          <RouterProvider router={router} />
-        </TooltipProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <RouterProvider router={router} />
+          </TooltipProvider>
+        </QueryClientProvider>
       </Auth0Provider>
     </ThemeProvider>
   </StrictMode>

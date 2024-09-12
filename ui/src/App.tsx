@@ -8,10 +8,56 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { useEffect } from "react";
 
 function App() {
-  const { isAuthenticated } = useAuth0();
+  const { isAuthenticated, user } = useAuth0();
   const navigate = useNavigate();
+
+  const {
+    data: currentUser,
+    refetch: fetchUser,
+    isFetched: isUserFetched,
+  } = useQuery({
+    queryKey: ["user"],
+    queryFn: () =>
+      axios
+        .get(`http://localhost:3000/api/v1/users/${user?.email}`)
+        .then((res) => {
+          if (res.status === 204) {
+            return null;
+          }
+          return res.data;
+        }),
+    enabled: false,
+  });
+
+  const { mutate: createUser } = useMutation({
+    mutationFn: (data: {
+      name: string | undefined;
+      email: string | undefined;
+    }) =>
+      axios
+        .post("http://localhost:3000/api/v1/users", data)
+        .then((res) => res.data),
+  });
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUser();
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (user && currentUser === null && isUserFetched && isAuthenticated) {
+      createUser({
+        name: user.name,
+        email: user.email,
+      });
+    }
+  }, [user, currentUser, isAuthenticated]);
 
   if (!isAuthenticated) {
     navigate("/login");

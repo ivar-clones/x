@@ -13,6 +13,7 @@ type UserRepository interface {
 	CreateUser(name, email, bio string, dob interface{}) error
 	UpdateUser(id int, name, email, bio string, dob interface{}) error
 	GetUser(id int) (*model.User, error)
+	GetUserByEmail(email string) (*model.User, error)
 }
 
 func (r *repository) GetAllUsers() ([]model.User, error) {
@@ -52,6 +53,25 @@ func (r *repository) GetUser(id int) (*model.User, error) {
 	
 	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.User])
 	if err != nil {
+		log.Printf("error collecting rows: %+v", err)
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *repository) GetUserByEmail(email string) (*model.User, error) {
+	rows, err := r.db.Query(context.Background(), "select id, name, email, upserted_at, bio, dob from users where email = $1", email)
+	if err != nil {
+		log.Printf("error querying user: %+v", err)
+		return nil, err
+	}
+
+	user, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[model.User])
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
 		log.Printf("error collecting rows: %+v", err)
 		return nil, err
 	}

@@ -38,6 +38,12 @@ func (m *mockRepo) GetUser(id int) (*model.User, error) {
 	return args.Get(0).(*model.User), args.Error(1)
 }
 
+func (m *mockRepo) GetUserByEmail(email string) (*model.User, error) {
+	args := m.Called(email)
+
+	return args.Get(0).(*model.User), args.Error(1)
+}
+
 func TestGetAllUsers_ReturnsUsers(t *testing.T) {
 	mockRepo := &mockRepo{}
 	service := New(mockRepo)

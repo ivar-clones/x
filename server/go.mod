@@ -4,6 +4,7 @@ go 1.23.1
 
 require (
 	github.com/jackc/pgx/v5 v5.7.0
+	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.9.0
 )
 

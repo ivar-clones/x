@@ -11,6 +11,7 @@ import (
 
 type Service interface {
 	GetAllUsers() ([]model.User, error)
+	GetUserByEmail(email string) (*model.User, error)
 	CreateUser(name, email, bio, dob string) error
 	UpdateUser(id int, name, email string, bio interface{}, dob string) error
 }
@@ -33,6 +34,16 @@ func (s *service) GetAllUsers() ([]model.User, error) {
 	}
 
 	return users, nil
+}
+
+func (s *service) GetUserByEmail(email string) (*model.User, error) {
+	user, err := s.db.GetUserByEmail(email)
+	if err != nil {
+		log.Printf("error fetching user: %+v", err)
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (s *service) CreateUser(name, email, bio, dob string) error {
