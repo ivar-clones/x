@@ -11,8 +11,8 @@ import (
 
 type Service interface {
 	GetAllUsers() ([]model.User, error)
-	CreateUser(name, bio, dob string) error
-	UpdateUser(id int, name string, bio interface{}, dob string) error
+	CreateUser(name, email, bio, dob string) error
+	UpdateUser(id int, name, email string, bio interface{}, dob string) error
 }
 
 type service struct {
@@ -35,7 +35,7 @@ func (s *service) GetAllUsers() ([]model.User, error) {
 	return users, nil
 }
 
-func (s *service) CreateUser(name, bio, dob string) error {
+func (s *service) CreateUser(name, email, bio, dob string) error {
 	var validatedDob interface{}
 	if dob == "" {
 		validatedDob = nil
@@ -47,7 +47,7 @@ func (s *service) CreateUser(name, bio, dob string) error {
 		validatedDob = time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 	}
 
-	if err := s.db.CreateUser(name, bio, validatedDob); err != nil {
+	if err := s.db.CreateUser(name, email, bio, validatedDob); err != nil {
 		log.Printf("error creating user: %+v", err)
 		return err
 	}
@@ -55,7 +55,7 @@ func (s *service) CreateUser(name, bio, dob string) error {
 	return nil
 }
 
-func (s *service) UpdateUser(id int, name string, bio interface{}, dob string) error {
+func (s *service) UpdateUser(id int, name, email string, bio interface{}, dob string) error {
 	var validatedDob interface{}
 	if dob == "" {
 		validatedDob = nil
@@ -77,6 +77,10 @@ func (s *service) UpdateUser(id int, name string, bio interface{}, dob string) e
 		name = currentUser.Name
 	}
 
+	if email == "" {
+		email = currentUser.Email
+	}
+
 	if bio == nil {
 		bio = currentUser.Bio
 	}
@@ -85,7 +89,7 @@ func (s *service) UpdateUser(id int, name string, bio interface{}, dob string) e
 		validatedDob = currentUser.DOB
 	}
 
-	if err := s.db.UpdateUser(id, name, bio.(string), validatedDob); err != nil {
+	if err := s.db.UpdateUser(id, name, email, bio.(string), validatedDob); err != nil {
 		log.Printf("error creating user: %+v", err)
 		return err
 	}

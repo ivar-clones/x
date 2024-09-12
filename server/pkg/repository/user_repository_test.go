@@ -26,6 +26,7 @@ func TestGetAllUsers_ReturnsUsers(t *testing.T) {
 		{
 			ID: 1,
 			Name: "user 1",
+			Email: "email1",
 			UpsertedAt: dummyTime,
 			Bio: "bio1",
 			DOB: &dummyTime,
@@ -33,15 +34,16 @@ func TestGetAllUsers_ReturnsUsers(t *testing.T) {
 		{
 			ID: 2,
 			Name: "user 2",
+			Email: "email2",
 			UpsertedAt: dummyTime,
 			Bio: "bio2",
 			DOB: &dummyTime,
 		},
 	}
 
-	mockRows := mockDb.NewRows([]string{"id", "name", "upserted_at", "bio", "dob"}).AddRow(1, "user 1", dummyTime, "bio1", &dummyTime).AddRow(2, "user 2", dummyTime, "bio2", &dummyTime)
+	mockRows := mockDb.NewRows([]string{"id", "name", "email", "upserted_at", "bio", "dob"}).AddRow(1, "user 1", "email1", dummyTime, "bio1", &dummyTime).AddRow(2, "user 2", "email2", dummyTime, "bio2", &dummyTime)
 
-	mockDb.ExpectQuery("select id, name, upserted_at, bio, dob from users").WillReturnRows(mockRows)
+	mockDb.ExpectQuery("select id, name, email, upserted_at, bio, dob from users").WillReturnRows(mockRows)
 
 	// act
 	actual, err := repo.GetAllUsers()
@@ -67,7 +69,7 @@ func TestGetAllUsersFails_ReturnsError(t *testing.T) {
 
 	repo := New(mockDb)
 
-	mockDb.ExpectQuery("select id, name, upserted_at, bio, dob from users").WillReturnError(errors.New("test error"))
+	mockDb.ExpectQuery("select id, name, email, upserted_at, bio, dob from users").WillReturnError(errors.New("test error"))
 
 	// act
 	_, err = repo.GetAllUsers()
@@ -95,9 +97,9 @@ func TestGetAllUsersParseError_ReturnsError(t *testing.T) {
 	
 	dummyTime := time.Now()
 
-	mockRows := mockDb.NewRows([]string{"id", "name", "upserted_at", "bio", "dob"}).AddRow(1, 1, dummyTime, "bio", dummyTime).AddRow(2, 2, dummyTime, "bio", dummyTime)
+	mockRows := mockDb.NewRows([]string{"id", "name", "email", "upserted_at", "bio", "dob"}).AddRow(1, 1, "email1", dummyTime, "bio", dummyTime).AddRow(2, 2, "email2", dummyTime, "bio", dummyTime)
 
-	mockDb.ExpectQuery("select id, name, upserted_at, bio, dob from users").WillReturnRows(mockRows)
+	mockDb.ExpectQuery("select id, name, email, upserted_at, bio, dob from users").WillReturnRows(mockRows)
 
 	// act
 	_, err = repo.GetAllUsers()
@@ -125,10 +127,10 @@ func TestCreateUser_ReturnsNoError(t *testing.T) {
 
 	dummyTime := time.Now()
 
-	mockDb.ExpectExec("insert into users").WithArgs("Varun Gupta", "bio1", dummyTime).WillReturnResult(pgxmock.NewResult("", 1))
+	mockDb.ExpectExec("insert into users").WithArgs("Varun Gupta", "email1", "bio1", dummyTime).WillReturnResult(pgxmock.NewResult("", 1))
 
 	// act
-	actual := repo.CreateUser("Varun Gupta", "bio1", dummyTime)
+	actual := repo.CreateUser("Varun Gupta", "email1", "bio1", dummyTime)
 	if actual != nil {
 		t.Errorf("expected: %+v, actual: %+v, error: %+v", nil, actual, err)
 	}
@@ -154,10 +156,10 @@ func TestCreateUser_ReturnsError(t *testing.T) {
 
 	expected := errors.New("test error")
 
-	mockDb.ExpectExec("insert into users").WithArgs("Varun Gupta", "bio1", dummyTime).WillReturnError(expected)
+	mockDb.ExpectExec("insert into users").WithArgs("Varun Gupta", "email1", "bio1", dummyTime).WillReturnError(expected)
 
 	// act
-	actual := repo.CreateUser("Varun Gupta", "bio1", dummyTime)
+	actual := repo.CreateUser("Varun Gupta", "email1", "bio1", dummyTime)
 	if actual != expected {
 		t.Errorf("expected: %+v, actual: %+v, error: %+v", expected, actual, err)
 	}
@@ -183,14 +185,15 @@ func TestGetUser_ReturnsUser(t *testing.T) {
 	expected := model.User{
 			ID: 1,
 			Name: "user 1",
+			Email: "email1",
 			UpsertedAt: dummyTime,
 			Bio: "bio1",
 			DOB: &dummyTime,
 	}
 
-	mockRows := mockDb.NewRows([]string{"id", "name", "upserted_at", "bio", "dob"}).AddRow(1, "user 1", dummyTime, "bio1", &dummyTime)
+	mockRows := mockDb.NewRows([]string{"id", "name", "email", "upserted_at", "bio", "dob"}).AddRow(1, "user 1", "email1", dummyTime, "bio1", &dummyTime)
 
-	mockDb.ExpectQuery("select id, name, upserted_at, bio, dob from users").WithArgs(1).WillReturnRows(mockRows)
+	mockDb.ExpectQuery("select id, name, email, upserted_at, bio, dob from users").WithArgs(1).WillReturnRows(mockRows)
 
 	// act
 	actual, err := repo.GetUser(1)
@@ -216,7 +219,7 @@ func TestGetUserFails_ReturnsError(t *testing.T) {
 
 	repo := New(mockDb)
 
-	mockDb.ExpectQuery("select id, name, upserted_at, bio, dob from users").WithArgs(1).WillReturnError(errors.New("test error"))
+	mockDb.ExpectQuery("select id, name, email, upserted_at, bio, dob from users").WithArgs(1).WillReturnError(errors.New("test error"))
 
 	// act
 	_, err = repo.GetUser(1)
@@ -244,9 +247,9 @@ func TestGetUserParseError_ReturnsError(t *testing.T) {
 	
 	dummyTime := time.Now()
 
-	mockRows := mockDb.NewRows([]string{"id", "name", "upserted_at", "bio", "dob"}).AddRow(1, 1, dummyTime, "bio", dummyTime)
+	mockRows := mockDb.NewRows([]string{"id", "name", "email", "upserted_at", "bio", "dob"}).AddRow(1, 1, "email1", dummyTime, "bio", dummyTime)
 
-	mockDb.ExpectQuery("select id, name, upserted_at, bio, dob from users").WithArgs(1).WillReturnRows(mockRows)
+	mockDb.ExpectQuery("select id, name, email, upserted_at, bio, dob from users").WithArgs(1).WillReturnRows(mockRows)
 
 	// act
 	_, err = repo.GetUser(1)
@@ -274,10 +277,10 @@ func TestUpdateUser_ReturnsNoError(t *testing.T) {
 
 	dummyTime := time.Now()
 
-	mockDb.ExpectExec("update users").WithArgs("Varun Gupta", "bio1", dummyTime, 1).WillReturnResult(pgxmock.NewResult("", 1))
+	mockDb.ExpectExec("update users").WithArgs("Varun Gupta", "email1", "bio1", dummyTime, 1).WillReturnResult(pgxmock.NewResult("", 1))
 
 	// act
-	actual := repo.UpdateUser(1, "Varun Gupta", "bio1", dummyTime)
+	actual := repo.UpdateUser(1, "Varun Gupta", "email1", "bio1", dummyTime)
 	if actual != nil {
 		t.Errorf("expected: %+v, actual: %+v, error: %+v", nil, actual, err)
 	}
@@ -303,10 +306,10 @@ func TestUpdateUser_ReturnsError(t *testing.T) {
 
 	expected := errors.New("test error")
 
-	mockDb.ExpectExec("update users").WithArgs("Varun Gupta", "bio1", dummyTime, 1).WillReturnError(expected)
+	mockDb.ExpectExec("update users").WithArgs("Varun Gupta", "email1", "bio1", dummyTime, 1).WillReturnError(expected)
 
 	// act
-	actual := repo.UpdateUser(1, "Varun Gupta", "bio1", dummyTime)
+	actual := repo.UpdateUser(1, "Varun Gupta", "email1", "bio1", dummyTime)
 	if actual != expected {
 		t.Errorf("expected: %+v, actual: %+v, error: %+v", expected, actual, err)
 	}

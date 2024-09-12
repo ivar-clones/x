@@ -53,7 +53,7 @@ func (u *controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := u.userService.CreateUser(createUserRequest.Name, createUserRequest.Bio, createUserRequest.DOB); err != nil {
+	if err := u.userService.CreateUser(createUserRequest.Name, createUserRequest.Email, createUserRequest.Bio, createUserRequest.DOB); err != nil {
 		log.Printf("error creating user: %+v", err)
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
@@ -78,7 +78,7 @@ func (u *controller) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := u.userService.UpdateUser(updateUserRequest.ID, updateUserRequest.Name, updateUserRequest.Bio, updateUserRequest.DOB); err != nil {
+	if err := u.userService.UpdateUser(updateUserRequest.ID, updateUserRequest.Name, updateUserRequest.Email, updateUserRequest.Bio, updateUserRequest.DOB); err != nil {
 		log.Printf("error creating user: %+v", err)
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
