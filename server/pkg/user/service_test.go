@@ -91,6 +91,62 @@ func TestGetAllUsersFails_ReturnsError(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+func TestGetUserByEmail_ReturnsUser(t *testing.T) {
+	mockRepo := &mockRepo{}
+	service := New(mockRepo)
+
+	dummyTime := time.Now()
+
+	expected := &model.User{
+			ID: 1,
+			Name: "user 1",
+			Email: "email1",
+			UpsertedAt: dummyTime,
+			Bio: "bio1",
+	}
+
+	mockRepo.On("GetUserByEmail", mock.AnythingOfType("string")).Return(expected, nil)
+
+	actual, _ := service.GetUserByEmail("email1")
+	util.AssertJSON(actual, expected, t)
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestGetUserByEmailFails_ReturnsError(t *testing.T) {
+	mockRepo := &mockRepo{}
+	service := New(mockRepo)
+
+	expected := errors.New("test error")
+
+	mockRepo.On("GetUserByEmail", mock.AnythingOfType("string")).Return((*model.User)(nil), expected)
+
+	_, actual := service.GetUserByEmail("email1")
+	if actual != expected {
+		t.Errorf("expected %+v, actual: %+v", expected, actual)
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestGetUserByEmailNoUser_ReturnsNilUserAndError(t *testing.T) {
+	mockRepo := &mockRepo{}
+	service := New(mockRepo)
+
+	mockRepo.On("GetUserByEmail", mock.AnythingOfType("string")).Return((*model.User)(nil), nil)
+
+	actual, err := service.GetUserByEmail("email1")
+	if actual != nil {
+		t.Errorf("expected %+v, actual: %+v", nil, actual)
+	}
+
+	if err != nil {
+		t.Errorf("expected %+v, actual: %+v", nil, err)
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
 func TestCreateUser_ReturnsNoError(t *testing.T) {
 	mockRepo := &mockRepo{}
 	service := New(mockRepo)

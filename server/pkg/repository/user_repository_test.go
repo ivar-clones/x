@@ -319,3 +319,129 @@ func TestUpdateUser_ReturnsError(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+func TestGetUserByEmail_ReturnsUser(t *testing.T) {
+	// arrange
+	mockDb, err := pgxmock.NewPool()
+	if err != nil {
+		t.Errorf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	defer mockDb.Close()
+
+	repo := New(mockDb)
+
+	dummyTime := time.Now()
+	expected := model.User{
+			ID: 1,
+			Name: "user 1",
+			Email: "email1",
+			UpsertedAt: dummyTime,
+			Bio: "bio1",
+			DOB: &dummyTime,
+	}
+
+	mockRows := mockDb.NewRows([]string{"id", "name", "email", "upserted_at", "bio", "dob"}).AddRow(1, "user 1", "email1", dummyTime, "bio1", &dummyTime)
+
+	mockDb.ExpectQuery("select id, name, email, upserted_at, bio, dob from users").WithArgs("email1").WillReturnRows(mockRows)
+
+	// act
+	actual, err := repo.GetUserByEmail("email1")
+	if err != nil {
+		t.Errorf("expected: %+v, actual: %+v, error: %+v", expected, actual, err)
+	}
+
+	// assert
+	util.AssertJSON(actual, expected, t)
+	if err := mockDb.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetUserByEmailFails_ReturnsError(t *testing.T) {
+	// arrange
+	mockDb, err := pgxmock.NewPool()
+	if err != nil {
+		t.Errorf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	defer mockDb.Close()
+
+	repo := New(mockDb)
+
+	mockDb.ExpectQuery("select id, name, email, upserted_at, bio, dob from users").WithArgs("email1").WillReturnError(errors.New("test error"))
+
+	// act
+	_, err = repo.GetUserByEmail("email1")
+
+	// assert
+	if err.Error() != "test error" {
+		t.Errorf("expected: %+v, actual: %+v", "test error", err.Error())
+	}
+
+	if err := mockDb.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetUserByEmailNoUser_ReturnsNilUserAndError(t *testing.T) {
+	// arrange
+	mockDb, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	defer mockDb.Close()
+
+	repo := New(mockDb)
+	
+	mockRows := mockDb.NewRows([]string{"id", "name", "email", "upserted_at", "bio", "dob"})
+
+	mockDb.ExpectQuery("select id, name, email, upserted_at, bio, dob from users").WithArgs("email1").WillReturnRows(mockRows)
+
+	// act
+	actual, err := repo.GetUserByEmail("email1")
+
+	// assert
+	if actual != nil {
+		t.Errorf("expected nil user")
+	}
+
+	if err != nil {
+		t.Errorf("expected nil error")
+	}
+
+	if err := mockDb.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetUserByEmailParseError_ReturnsError(t *testing.T) {
+	// arrange
+	mockDb, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	defer mockDb.Close()
+
+	repo := New(mockDb)
+	
+	dummyTime := time.Now()
+
+	mockRows := mockDb.NewRows([]string{"id", "name", "email", "upserted_at", "bio", "dob"}).AddRow(1, 1, "email1", dummyTime, "bio", dummyTime)
+
+	mockDb.ExpectQuery("select id, name, email, upserted_at, bio, dob from users").WithArgs("email1").WillReturnRows(mockRows)
+
+	// act
+	_, err = repo.GetUserByEmail("email1")
+
+	// assert
+	if err == nil {
+		t.Errorf("expected an error but nil was returned")
+	}
+
+	if err := mockDb.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
