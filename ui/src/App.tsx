@@ -10,12 +10,15 @@ import {
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 function App() {
   const { isAuthenticated, user } = useAuth0();
   const navigate = useNavigate();
   const location = useLocation();
+  const [selectedTab, setSelectedTab] = useState<"for you" | "following">(
+    "for you"
+  );
 
   const {
     data: currentUser,
@@ -72,11 +75,19 @@ function App() {
           {isAuthenticated ? (
             <>
               <LoginProfile />
+              <Button
+                className="rounded-full w-[80%] h-12 dark:text-white font-bold mb-10"
+                size="icon"
+                onClick={() => navigate("/post")}
+              >
+                <Icons.plus className="block md:hidden text-lg " />
+                <span className="text-lg hidden md:block">Post</span>
+              </Button>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="rounded-full"
+                    className="rounded-full h-12"
                     onClick={() => navigate("/profile")}
                   >
                     <Icons.user />
@@ -112,15 +123,25 @@ function App() {
                 <div className="flex flex-row w-full justify-between">
                   <Button
                     variant="ghost"
-                    className="w-full hover:underline decoration-primary decoration-4 underline-offset-[12px]"
+                    className={`w-full ${
+                      selectedTab === "for you"
+                        ? "underline decoration-primary decoration-4 underline-offset-[12px]"
+                        : ""
+                    }`}
                     size="lg"
+                    onClick={() => setSelectedTab("for you")}
                   >
                     <span className="text-lg">For you</span>
                   </Button>
                   <Button
                     variant="ghost"
-                    className="w-full hover:underline decoration-primary decoration-4 underline-offset-[12px]"
+                    className={`w-full ${
+                      selectedTab === "following"
+                        ? "underline decoration-primary decoration-4 underline-offset-[12px]"
+                        : ""
+                    }`}
                     size="lg"
+                    onClick={() => setSelectedTab("following")}
                   >
                     <span className="text-lg">Following</span>
                   </Button>

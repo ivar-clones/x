@@ -26,7 +26,7 @@ export const LoginProfile = () => {
         <PopoverContent className="w-40 p-0">
           <Button
             variant="ghost"
-            className="focus:border-none hover:bg-transparent w-full"
+            className="focus:border-none hover:bg-transparent w-full text-lg h-12"
             onClick={() =>
               logout({
                 logoutParams: { returnTo: `${window.location.origin}/login` },
