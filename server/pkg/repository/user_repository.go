@@ -10,8 +10,8 @@ import (
 
 type UserRepository interface {
 	GetAllUsers() ([]model.User, error)
-	CreateUser(name, email, bio string, dob interface{}) error
-	UpdateUser(id int, name, email, bio string, dob interface{}) error
+	CreateUser(name string, email, bio, dob *string) error
+	UpdateUser(id int, name, email, bio, dob *string) error
 	GetUser(id int) (*model.User, error)
 	GetUserByEmail(email string) (*model.User, error)
 }
@@ -34,7 +34,7 @@ func (r *repository) GetAllUsers() ([]model.User, error) {
 	return users, nil
 }
 
-func (r *repository) CreateUser(name, email, bio string, dob interface{}) error {
+func (r *repository) CreateUser(name string, email, bio, dob *string) error {
 	_, err := r.db.Exec(context.Background(), "insert into users (name, email, bio, dob) values ($1, $2, $3, $4)", name, email, bio, dob)
 	if err != nil {
 		log.Printf("error inserting user: %+v", err)
@@ -79,8 +79,8 @@ func (r *repository) GetUserByEmail(email string) (*model.User, error) {
 	return &user, nil
 }
 
-func (r *repository) UpdateUser(id int, name, email, bio string, dob interface{}) error {
-	_, err := r.db.Exec(context.Background(), "update users set name = $1, email = $2, bio = $3, dob = $4 where id = $4", name, email, bio, dob, id)
+func (r *repository) UpdateUser(id int, name, email, bio, dob *string) error {
+	_, err := r.db.Exec(context.Background(), "update users set name = $1, email = $2, bio = $3, dob = $4 where id = $5", name, email, bio, dob, id)
 	if err != nil {
 		log.Printf("error inserting user: %+v", err)
 		return err

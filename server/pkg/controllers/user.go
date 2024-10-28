@@ -2,15 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
-	"strconv"
-	"strings"
 	"x/pkg/model"
-)
 
-var badDobError = errors.New("Format for date of birth should be DD-MM-YYYY")
+	"github.com/go-playground/validator/v10"
+)
 
 type UserController interface {
 	GetAllUsers(w http.ResponseWriter, r *http.Request)
@@ -67,6 +64,7 @@ func (u *controller) GetUser(w http.ResponseWriter, r *http.Request) {
 
 func (u *controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var createUserRequest model.CreateUser
+	validate := validator.New()
 
 	err := json.NewDecoder(r.Body).Decode(&createUserRequest)
 	if err != nil {
@@ -75,9 +73,9 @@ func (u *controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validatedDob(createUserRequest.DOB); errors.Is(err, badDobError) {
-		log.Printf("bad format for dob: %+v", createUserRequest.DOB)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := validate.Struct(createUserRequest); err != nil {
+		log.Printf("error decoding body: %+v", err)
+		http.Error(w, "bad request body", http.StatusBadRequest)
 		return
 	}
 
@@ -92,6 +90,7 @@ func (u *controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func (u *controller) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var updateUserRequest model.UpdateUser
+	validate := validator.New()
 
 	err := json.NewDecoder(r.Body).Decode(&updateUserRequest)
 	if err != nil {
@@ -100,9 +99,9 @@ func (u *controller) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validatedDob(updateUserRequest.DOB); errors.Is(err, badDobError) {
-		log.Printf("bad format for dob: %+v", updateUserRequest.DOB)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := validate.Struct(updateUserRequest); err != nil {
+		log.Printf("error decoding body: %+v", err)
+		http.Error(w, "bad request body", http.StatusBadRequest)
 		return
 	}
 
@@ -113,32 +112,4 @@ func (u *controller) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-func validatedDob(dob string) error {
-	if dob == "" {
-		return nil
-	}
-	
-	parsedDob := strings.Split(dob, "-")
-	if len(parsedDob) != 3 || (parsedDob[0] == "" || parsedDob[1] == "" || parsedDob[2] == "") {
-		return badDobError
-	}
-
-	_, err := strconv.Atoi(parsedDob[0])
-	if err != nil {
-		return badDobError
-	}
-
-	_, err = strconv.Atoi(parsedDob[1])
-	if err != nil {
-		return badDobError
-	}
-
-	_, err = strconv.Atoi(parsedDob[2])
-	if err != nil {
-		return badDobError
-	}
-	
-	return nil
 }

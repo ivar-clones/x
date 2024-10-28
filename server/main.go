@@ -9,19 +9,19 @@ import (
 	"x/pkg/repository"
 	"x/pkg/user"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 	"github.com/rs/cors"
 )
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	conn, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Printf("Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	defer conn.Close()
+	defer conn.Close(context.Background())
 
 	repo := repository.New(conn)
 

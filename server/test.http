@@ -2,7 +2,7 @@ GET http://localhost:3000/api/v1/users
 
 ###
 
-GET http://localhost:3000/api/v1/users/varungupta2015135@gmail.comdwadaw
+GET http://localhost:3000/api/v1/users/varun.allenghost@gmail.com
 
 ###
 
@@ -10,7 +10,9 @@ POST http://localhost:3000/api/v1/users
 Content-Type: application/json
 
 {
-  "name": "Michael Scott"
+  "name": "Varun Gupta",
+  "dob": "1997-07-29",
+  "email": "varungupta2015135@gmail.com"
 }
 
 ###
@@ -19,6 +21,7 @@ PUT http://localhost:3000/api/v1/users
 Content-Type: application/json
 
 {
-  "id": 10,
-  "bio": "Dummy Bio"
+  "id": 1,
+  "name": "Varun Gupta",
+  "bio": ""
 }

@@ -2,9 +2,6 @@ package user
 
 import (
 	"log"
-	"strconv"
-	"strings"
-	"time"
 	"x/pkg/model"
 	"x/pkg/repository"
 )
@@ -12,8 +9,8 @@ import (
 type Service interface {
 	GetAllUsers() ([]model.User, error)
 	GetUserByEmail(email string) (*model.User, error)
-	CreateUser(name, email, bio, dob string) error
-	UpdateUser(id int, name, email string, bio interface{}, dob string) error
+	CreateUser(name string, email, bio, dob *string) error
+	UpdateUser(id int, name, email, bio, dob *string) error
 }
 
 type service struct {
@@ -46,19 +43,8 @@ func (s *service) GetUserByEmail(email string) (*model.User, error) {
 	return user, nil
 }
 
-func (s *service) CreateUser(name, email, bio, dob string) error {
-	var validatedDob interface{}
-	if dob == "" {
-		validatedDob = nil
-	} else {
-		parsedDob := strings.Split(dob, "-")
-		day, _ := strconv.Atoi(parsedDob[0])
-		month, _ := strconv.Atoi(parsedDob[1])
-		year, _ := strconv.Atoi(parsedDob[2])
-		validatedDob = time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-	}
-
-	if err := s.db.CreateUser(name, email, bio, validatedDob); err != nil {
+func (s *service) CreateUser(name string, email, bio, dob *string) error {
+	if err := s.db.CreateUser(name, email, bio, dob); err != nil {
 		log.Printf("error creating user: %+v", err)
 		return err
 	}
@@ -66,41 +52,33 @@ func (s *service) CreateUser(name, email, bio, dob string) error {
 	return nil
 }
 
-func (s *service) UpdateUser(id int, name, email string, bio interface{}, dob string) error {
-	var validatedDob interface{}
-	if dob == "" {
-		validatedDob = nil
-	} else {
-		parsedDob := strings.Split(dob, "-")
-		day, _ := strconv.Atoi(parsedDob[0])
-		month, _ := strconv.Atoi(parsedDob[1])
-		year, _ := strconv.Atoi(parsedDob[2])
-		validatedDob = time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-	}
-
+func (s *service) UpdateUser(id int, name, email, bio, dob *string) error {
 	currentUser, err := s.db.GetUser(id)
 	if err != nil {
 		log.Printf("error fetching user: %+v", err)
 		return err
 	}
 
-	if name == "" {
-		name = currentUser.Name
+	if name == nil {
+		name = &currentUser.Name
 	}
 
-	if email == "" {
+	if email == nil {
 		email = currentUser.Email
 	}
 
 	if bio == nil {
 		bio = currentUser.Bio
+	} else if (*bio == "") {
+		bio = nil
 	}
 
-	if validatedDob == nil {
-		validatedDob = currentUser.DOB
+
+	if dob == nil {
+		dob = currentUser.DOB
 	}
 
-	if err := s.db.UpdateUser(id, name, email, bio.(string), validatedDob); err != nil {
+	if err := s.db.UpdateUser(id, name, email, bio, dob); err != nil {
 		log.Printf("error creating user: %+v", err)
 		return err
 	}
